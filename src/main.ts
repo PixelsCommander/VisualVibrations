@@ -42,22 +42,23 @@ const GRID_SIZE = 128;
 const TOP_SEGMENTS = 256;
 const HALF_SIZE = LIQUID_SIZE * 0.5;
 const MICROPHONE_RUMBLE_CUTOFF_HZ = 58;
+const ASSET_BASE_URL = import.meta.env.BASE_URL;
 const THREEJS_ENVIRONMENTS = {
   spruit: {
     label: "Spruit Sunrise",
-    path: "/env/threejs/spruit_sunrise_1k.hdr",
+    path: `${ASSET_BASE_URL}env/threejs/spruit_sunrise_1k.hdr`,
   },
   venice: {
     label: "Venice Sunset",
-    path: "/env/threejs/venice_sunset_1k.hdr",
+    path: `${ASSET_BASE_URL}env/threejs/venice_sunset_1k.hdr`,
   },
   blouberg: {
     label: "Blouberg Sunrise",
-    path: "/env/threejs/blouberg_sunrise_2_1k.hdr",
+    path: `${ASSET_BASE_URL}env/threejs/blouberg_sunrise_2_1k.hdr`,
   },
   overpass: {
     label: "Pedestrian Overpass",
-    path: "/env/threejs/pedestrian_overpass_1k.hdr",
+    path: `${ASSET_BASE_URL}env/threejs/pedestrian_overpass_1k.hdr`,
   },
 } as const;
 
