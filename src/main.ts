@@ -601,7 +601,8 @@ const topSurface = new THREE.Mesh(
         vUv = uv;
         float height = sampleHeight(uv);
         float texel = 1.0 / uGridSize;
-        float shimmer = sin((uv.x * 96.0 + uv.y * 71.0) + uTime * 28.0) * uTreble * 0.012;
+        float shimmerGate = smoothstep(0.18, 0.34, uTreble);
+        float shimmer = sin((uv.x * 96.0 + uv.y * 71.0) + uTime * 28.0) * shimmerGate * 0.006;
         height += shimmer;
 
         vec3 displaced = position + vec3(0.0, 0.0, height);
