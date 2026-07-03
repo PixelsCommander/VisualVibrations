@@ -73,7 +73,7 @@ const liquidPhysics: LiquidPhysics = {
   mass: 1.0,
   surfaceTension: 0.5,
   damping: 0.08,
-  waveSpeed: 2.75,
+  waveSpeed: 1.7,
   restoringForce: 0.7,
   resonanceStrength: 1.65,
   audioForceStrength: 1.85,
@@ -858,8 +858,19 @@ for (const key of [
   "dropletLift",
 ] as const) {
   const input = document.querySelector<HTMLInputElement>(`#${key}`);
+  const valueOutput = document.createElement("output");
+  valueOutput.className = "control-value";
+  valueOutput.value = Number(input?.value ?? liquidPhysics[key]).toFixed(2);
+  input?.insertAdjacentElement("afterend", valueOutput);
+
   input?.addEventListener("input", () => {
     liquidPhysics[key] = Number(input.value);
+    valueOutput.value = liquidPhysics[key].toFixed(2);
+    console.log("liquid control", {
+      key,
+      value: liquidPhysics[key],
+      physics: { ...liquidPhysics },
+    });
   });
 }
 
