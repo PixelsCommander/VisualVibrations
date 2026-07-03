@@ -178,7 +178,7 @@ class AudioAnalyzer {
     const smoothing = 0.16;
     for (const key of Object.keys(this.smoothed) as Array<keyof AudioBands>) {
       if (key === "treblePeak") {
-        this.smoothed.treblePeak = Math.max(raw.treblePeak, this.smoothed.treblePeak * 0.72);
+        this.smoothed.treblePeak = Math.max(raw.treblePeak, this.smoothed.treblePeak * 0.42);
         continue;
       }
       this.smoothed[key] += (raw[key] - this.smoothed[key]) * smoothing;
@@ -430,7 +430,8 @@ class LiquidHeightfield {
     }
 
     const chance = THREE.MathUtils.clamp(physics.dropletLift / 4, 0, 1);
-    const strength = THREE.MathUtils.smoothstep(bands.treblePeak, 0.012, 0.22) * deltaTime * 3.2;
+    const cappedTreblePeak = Math.min(bands.treblePeak, 0.5);
+    const strength = THREE.MathUtils.smoothstep(cappedTreblePeak, 0.012, 0.22) * deltaTime * 3.2;
 
     for (const seed of this.dropletWaveSeeds) {
       const pulseCycle = fract(this.phase * (2.2 + seed.phase * 5.5) + seed.phase);
@@ -650,7 +651,7 @@ const topSurface = new THREE.Mesh(
       void main() {
         vec3 normal = normalize(vNormal);
         float dropletChance = clamp(uDropletLift / 4.0, 0.0, 1.0);
-        float dropletEnergy = smoothstep(0.02, 0.16, uTreble);
+        float dropletEnergy = smoothstep(0.055, 0.24, uTreble);
         float dropletSlopeX = 0.0;
         float dropletSlopeZ = 0.0;
         float dropletMask = 0.0;
@@ -903,7 +904,7 @@ function animate(): void {
   }
 
   liquidUniforms.uTime.value += deltaTime;
-  liquidUniforms.uTreble.value = latestBands.treblePeak;
+  liquidUniforms.uTreble.value = Math.min(latestBands.treblePeak, 0.5);
   liquidUniforms.uDropletLift.value = liquidPhysics.dropletLift;
   liquidUniforms.uCameraPosition.value.copy(camera.position);
   topSurface.position.y = LIQUID_HEIGHT * 0.5 + 0.003;
