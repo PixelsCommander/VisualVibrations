@@ -142,7 +142,7 @@ class AudioAnalyzer {
       lowMid: this.averageRange(190, 400, binHz),
       mid: this.averageRange(400, 1600, binHz),
       highMid: this.averageRange(1600, 4200, binHz),
-      treble: this.averageRange(3500, 9000, binHz),
+      treble: this.averageRange(3500, 6000, binHz),
       treblePeak: 0,
       overall: 0,
       beat: 0,
