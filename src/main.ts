@@ -178,7 +178,7 @@ class AudioAnalyzer {
     const smoothing = 0.16;
     for (const key of Object.keys(this.smoothed) as Array<keyof AudioBands>) {
       if (key === "treblePeak") {
-        this.smoothed.treblePeak = Math.max(raw.treblePeak, this.smoothed.treblePeak * 0.42);
+        this.smoothed.treblePeak = Math.max(raw.treblePeak, this.smoothed.treblePeak * 0.24);
         continue;
       }
       this.smoothed[key] += (raw[key] - this.smoothed[key]) * smoothing;
@@ -425,12 +425,12 @@ class LiquidHeightfield {
   }
 
   private injectFinePeakWaves(bands: AudioBands, physics: LiquidPhysics, deltaTime: number): void {
-    if (bands.treblePeak < 0.012 || physics.dropletLift <= 0) {
+    if (bands.treblePeak < 0.09 || physics.dropletLift <= 0) {
       return;
     }
 
     const cappedTreblePeak = Math.min(bands.treblePeak, 0.5);
-    const peakAmount = THREE.MathUtils.smoothstep(cappedTreblePeak, 0.05, 0.28);
+    const peakAmount = THREE.MathUtils.smoothstep(cappedTreblePeak, 0.12, 0.34);
     const chance = THREE.MathUtils.clamp(physics.dropletLift / 4, 0, 1) * peakAmount;
     const strength = peakAmount * deltaTime * 2.8;
 
@@ -651,7 +651,7 @@ const topSurface = new THREE.Mesh(
 
       void main() {
         vec3 normal = normalize(vNormal);
-        float dropletEnergy = smoothstep(0.055, 0.24, uTreble);
+        float dropletEnergy = smoothstep(0.12, 0.34, uTreble);
         float dropletChance = clamp(uDropletLift / 4.0, 0.0, 1.0) * dropletEnergy;
         float dropletSlopeX = 0.0;
         float dropletSlopeZ = 0.0;
