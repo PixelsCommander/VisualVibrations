@@ -73,13 +73,13 @@ const liquidPhysics: LiquidPhysics = {
   mass: 1.0,
   surfaceTension: 0.5,
   damping: 0.08,
-  waveSpeed: 1.7,
+  waveSpeed: 1.9,
   restoringForce: 0.7,
   resonanceStrength: 1.65,
   audioForceStrength: 1.85,
   speakerRadius: 0.34,
-  speakerForce: 2.35,
-  radialRippleStrength: 4.75,
+  speakerForce: 2,
+  radialRippleStrength: 4.7,
   dropletLift: 1.25,
 };
 
