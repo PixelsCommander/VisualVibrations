@@ -79,7 +79,7 @@ const liquidPhysics: LiquidPhysics = {
   audioForceStrength: 1.85,
   speakerRadius: 0.34,
   speakerForce: 1.35,
-  radialRippleStrength: 3.2,
+  radialRippleStrength: 2.35,
   dropletLift: 1.25,
 };
 
@@ -266,7 +266,7 @@ class LiquidHeightfield {
     const invStepSq = 1 / (gridStep * gridStep);
     const viscosityDamping = physics.damping + physics.viscosity * 0.42;
     const mass = Math.max(0.1, physics.mass * physics.density);
-    const forceScale = physics.audioForceStrength * 2.6;
+    const forceScale = physics.audioForceStrength * 1.45;
 
     for (let y = 1; y < GRID_SIZE - 1; y += 1) {
       for (let x = 1; x < GRID_SIZE - 1; x += 1) {
@@ -295,7 +295,7 @@ class LiquidHeightfield {
             viscosityDamping * this.velocities[i]) /
           mass;
 
-        this.velocities[i] += acceleration * dt;
+        this.velocities[i] = THREE.MathUtils.clamp(this.velocities[i] + acceleration * dt, -1.6, 1.6);
         this.nextHeights[i] = h + this.velocities[i] * dt;
       }
     }
@@ -347,9 +347,9 @@ class LiquidHeightfield {
     bands: AudioBands,
     physics: LiquidPhysics,
   ): number {
-    const firstRing = Math.sin(sample.radius * 32 - this.phase * 7.0) * bands.lowMid * 1.25;
-    const tightRings = Math.sin(sample.radius * 58 - this.phase * 11.5) * bands.mid * 0.9;
-    const fineRings = Math.sin(sample.radius * 84 - this.phase * 16.0) * bands.highMid * 0.42;
+    const firstRing = Math.sin(sample.radius * 32 - this.phase * 7.0) * bands.lowMid * 0.8;
+    const tightRings = Math.sin(sample.radius * 58 - this.phase * 11.5) * bands.mid * 0.56;
+    const fineRings = Math.sin(sample.radius * 84 - this.phase * 16.0) * bands.highMid * 0.26;
     const distanceFade = Math.exp(-sample.radius * 1.1);
     return (
       (firstRing + tightRings + fineRings) *
@@ -388,7 +388,7 @@ class LiquidHeightfield {
     const distance = Math.hypot(dx, dy);
     const displacement = Math.exp(-(distance * distance) / 0.0045);
     const ring = Math.sin(distance * 92 - this.phase * 16) * Math.exp(-distance * 10);
-    return (displacement * -5.2 + ring * 1.65) * pointerRipple.velocity * sample.edgeFalloff;
+    return (displacement * -3.4 + ring * 1.05) * pointerRipple.velocity * sample.edgeFalloff;
   }
 
   private applyBoundaryContainment(): void {
@@ -429,7 +429,7 @@ class LiquidHeightfield {
     }
 
     const chance = THREE.MathUtils.clamp(physics.dropletLift / 4, 0, 1);
-    const strength = THREE.MathUtils.smoothstep(bands.treblePeak, 0.012, 0.22) * deltaTime * 9.5;
+    const strength = THREE.MathUtils.smoothstep(bands.treblePeak, 0.012, 0.22) * deltaTime * 3.2;
 
     for (const seed of this.dropletWaveSeeds) {
       const pulseCycle = fract(this.phase * (2.2 + seed.phase * 5.5) + seed.phase);
@@ -452,8 +452,8 @@ class LiquidHeightfield {
           const ring = Math.sin(distance * 3.9) * Math.exp(-distance * 0.7);
           const index = (centerY + oy) * GRID_SIZE + centerX + ox;
           const impulse = (peak * 1.35 - ring * 0.42) * pulse * strength;
-          this.nextHeights[index] += impulse * 0.85;
-          this.velocities[index] += impulse * 5.4;
+          this.nextHeights[index] += impulse * 0.32;
+          this.velocities[index] = THREE.MathUtils.clamp(this.velocities[index] + impulse * 1.8, -1.6, 1.6);
         }
       }
     }
