@@ -429,14 +429,15 @@ class LiquidHeightfield {
       return;
     }
 
-    const chance = THREE.MathUtils.clamp(physics.dropletLift / 4, 0, 1);
     const cappedTreblePeak = Math.min(bands.treblePeak, 0.5);
-    const strength = THREE.MathUtils.smoothstep(cappedTreblePeak, 0.012, 0.22) * deltaTime * 3.2;
+    const peakAmount = THREE.MathUtils.smoothstep(cappedTreblePeak, 0.05, 0.28);
+    const chance = THREE.MathUtils.clamp(physics.dropletLift / 4, 0, 1) * peakAmount;
+    const strength = peakAmount * deltaTime * 2.8;
 
     for (const seed of this.dropletWaveSeeds) {
       const pulseCycle = fract(this.phase * (2.2 + seed.phase * 5.5) + seed.phase);
       const allowed = seed.phase < chance;
-      if (!allowed || pulseCycle > 0.22) {
+      if (!allowed || pulseCycle > 0.16) {
         continue;
       }
 
@@ -446,7 +447,7 @@ class LiquidHeightfield {
         continue;
       }
 
-      const pulse = Math.pow(1 - pulseCycle / 0.22, 2.2);
+      const pulse = Math.pow(1 - pulseCycle / 0.16, 2.2);
       for (let oy = -3; oy <= 3; oy += 1) {
         for (let ox = -3; ox <= 3; ox += 1) {
           const distance = Math.hypot(ox, oy);
@@ -650,8 +651,8 @@ const topSurface = new THREE.Mesh(
 
       void main() {
         vec3 normal = normalize(vNormal);
-        float dropletChance = clamp(uDropletLift / 4.0, 0.0, 1.0);
         float dropletEnergy = smoothstep(0.055, 0.24, uTreble);
+        float dropletChance = clamp(uDropletLift / 4.0, 0.0, 1.0) * dropletEnergy;
         float dropletSlopeX = 0.0;
         float dropletSlopeZ = 0.0;
         float dropletMask = 0.0;
@@ -661,7 +662,7 @@ const topSurface = new THREE.Mesh(
           float seed = fract(sin(fi * 39.425) * 13517.271);
           float chance = step(seed, dropletChance);
           float cycle = fract(uTime * (1.55 + seed * 4.8) + seed);
-          float pulse = pow(max(0.0, 1.0 - cycle * 2.8), 1.85);
+          float pulse = pow(max(0.0, 1.0 - cycle * 3.7), 1.85);
           vec2 delta = vUv - center;
           float spot = exp(-dot(delta, delta) * 520.0) * pulse * chance;
           dropletSlopeX += -delta.x * spot;
