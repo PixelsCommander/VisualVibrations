@@ -79,7 +79,7 @@ const liquidPhysics: LiquidPhysics = {
   audioForceStrength: 1.85,
   speakerRadius: 0.34,
   speakerForce: 1.35,
-  radialRippleStrength: 1.85,
+  radialRippleStrength: 3.2,
   dropletLift: 1.25,
 };
 
@@ -99,6 +99,9 @@ class AudioAnalyzer {
   private analyser?: AnalyserNode;
   private frequencyData?: Uint8Array<ArrayBuffer>;
   private previousOverall = 0;
+  private previousLowMid = 0;
+  private previousMid = 0;
+  private previousHighMid = 0;
   private previousTreble = 0;
   private smoothed: AudioBands = { ...silentBands };
   private bassNoiseFloor = 0;
@@ -148,15 +151,18 @@ class AudioAnalyzer {
 
     const raw: AudioBands = {
       bass: this.gateBand(measured.bass, this.bassNoiseFloor, 0.014, 5.2),
-      lowMid: THREE.MathUtils.clamp(measured.lowMid * 1.55, 0, 1),
-      mid: THREE.MathUtils.clamp(measured.mid * 1.45, 0, 1),
-      highMid: THREE.MathUtils.clamp(measured.highMid * 1.35, 0, 1),
+      lowMid: 0,
+      mid: 0,
+      highMid: 0,
       treble: THREE.MathUtils.clamp(measured.treble * 5.6, 0, 1),
       treblePeak: 0,
       overall: 0,
       beat: 0,
     };
 
+    raw.lowMid = this.peakGate(measured.lowMid, "lowMid", 2.7);
+    raw.mid = this.peakGate(measured.mid, "mid", 2.6);
+    raw.highMid = this.peakGate(measured.highMid, "highMid", 2.4);
     raw.treblePeak = THREE.MathUtils.clamp(Math.max(0, raw.treble - this.previousTreble * 0.96) * 6.5, 0, 1);
     this.previousTreble = this.previousTreble * 0.8 + raw.treble * 0.2;
     raw.overall =
@@ -195,6 +201,15 @@ class AudioAnalyzer {
     const cleaned = Math.max(0, value - floor - threshold);
     const normalized = cleaned / Math.max(0.08, 1 - floor - threshold);
     return Math.pow(THREE.MathUtils.clamp(normalized * gain, 0, 1), 1.28);
+  }
+
+  private peakGate(value: number, band: "lowMid" | "mid" | "highMid", gain: number): number {
+    const previousKey =
+      band === "lowMid" ? "previousLowMid" : band === "mid" ? "previousMid" : "previousHighMid";
+    const previous = this[previousKey];
+    const peak = Math.max(0, value - previous * 1.06);
+    this[previousKey] = previous * 0.88 + value * 0.12;
+    return THREE.MathUtils.clamp(Math.pow(peak * gain * 5.5, 0.82), 0, 1);
   }
 
   private averageRange(minHz: number, maxHz: number, binHz: number): number {
@@ -323,7 +338,8 @@ class LiquidHeightfield {
     const radius = Math.max(0.08, physics.speakerRadius);
     const speakerBell = Math.exp(-(sample.radius * sample.radius) / (radius * radius));
     const heavyPressure = bands.bass * 1.18 + bands.beat * 1.85;
-    return speakerBell * heavyPressure * physics.speakerForce * sample.edgeFalloff;
+    const pressurePhase = Math.sin(this.phase * (8.0 + bands.bass * 6.0));
+    return speakerBell * heavyPressure * pressurePhase * physics.speakerForce * sample.edgeFalloff;
   }
 
   private radialRippleForce(
@@ -331,9 +347,9 @@ class LiquidHeightfield {
     bands: AudioBands,
     physics: LiquidPhysics,
   ): number {
-    const firstRing = Math.sin(sample.radius * 32 - this.phase * 7.0) * bands.lowMid * 0.48;
-    const tightRings = Math.sin(sample.radius * 58 - this.phase * 11.5) * bands.mid * 0.34;
-    const fineRings = Math.sin(sample.radius * 84 - this.phase * 16.0) * bands.highMid * 0.16;
+    const firstRing = Math.sin(sample.radius * 32 - this.phase * 7.0) * bands.lowMid * 1.25;
+    const tightRings = Math.sin(sample.radius * 58 - this.phase * 11.5) * bands.mid * 0.9;
+    const fineRings = Math.sin(sample.radius * 84 - this.phase * 16.0) * bands.highMid * 0.42;
     const distanceFade = Math.exp(-sample.radius * 1.1);
     return (
       (firstRing + tightRings + fineRings) *
